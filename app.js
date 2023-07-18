@@ -4,6 +4,7 @@ const { createBot, createProvider, createFlow } = require('@bot-whatsapp/bot')
 //Setup
 const WebWhatsappProvider = require('@bot-whatsapp/provider/baileys')
 const MockAdapter = require('@bot-whatsapp/database/mock')
+const QRPortal = require('@bot-whatsapp/portal')
 
 //Principal Flows
 const { principalFlow } = require('./Flows/principalFlow')
@@ -21,4 +22,5 @@ const main = async () => {
     })
 }
 
+QRPortal({port:3000});
 main()
