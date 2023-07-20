@@ -25,6 +25,6 @@ const main = async () => {
     })
 }
 
-QRPortalWeb({ name: BOTNAME, port: 3005 })
+QRPortal({ name: BOTNAME, port: 3005 })
 
 main()
