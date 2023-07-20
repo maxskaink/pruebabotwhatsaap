@@ -30,6 +30,7 @@ const shapesHi = [
     'Hooolaaaa',
     'H♥O♥L♥A'
   ]
+const adminNumbers =  JSON.parse(process.env.NUMEROS_ADMIN)
 
 const principalFlow = addKeyword( shapesHi , {sensitive:true})
     .addAnswer(['Hola, bienvenido a StrangeTech ','🧑‍💻💻😎⏯️'], {
@@ -48,4 +49,38 @@ const principalFlow = addKeyword( shapesHi , {sensitive:true})
         }, 
         [serviciosFlow, ayudaFlow, llamarFlow])
 
-module.exports = { principalFlow}
+const getUserFlow =  addKeyword( ['/usuarios', '!usuarios'], { sensitive: false})
+                    .addAnswer(' Procesando la solicitud... ', 
+                        null,
+                        (ctx, {flowDynamic}) => {
+                            const getUsuarios = () => global.myUsers.getUsers().map( 
+                                (user) =>{ 
+                                    return { body: `➡️El usuario *${user.nombre}* con numero ${user.contacto} necesita *${user.metodoContacto}*`} 
+                                })
+                                adminNumbers.forEach( number =>{ 
+                                    if( number == ctx.from) flowDynamic(getUsuarios()) 
+                                    else endFlow({ body: '❌No esta autorizado para esta acciond❌'})
+                                } )
+                        })
+
+const deleteFirstUserFlow =  addKeyword( ['/completado'], { sensitive: false})
+                        .addAnswer(' Procesando la solicitud... ', 
+                            null,
+                            (ctx, {flowDynamic, endFlow}) => {
+                                const getUsuarios = () => global.myUsers.getUsers().map( 
+                                    (user) =>{ 
+                                        return { body: `➡️El usuario *${user.nombre}* con numero ${user.contacto} necesita *${user.metodoContacto}*`} 
+                                    })
+                                adminNumbers.forEach( number =>{ 
+                                    if( number == ctx.from) {
+                                        global.myUsers.deleteFirstUser()
+                                        const actualUsers = getUsuarios()
+                                        if (actualUsers.length == 0 ) return endFlow({body: 'No tiene usuarios pendientes por atender 👍✅'})
+                                        actualUsers.unshift({body:'Estos son los usuarios restantes: 📲📞'})
+                                        flowDynamic(actualUsers)
+                                    }
+                                    else endFlow({ body: '❌No esta autorizado para esta accion❌'})
+                                } )
+                            })
+
+module.exports = { principalFlow, getUserFlow, deleteFirstUserFlow}
