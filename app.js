@@ -10,13 +10,13 @@ const QRPortal = require('@bot-whatsapp/portal')
 global.myUsers = new userManager('./myUsers.json');
 
 //Principal Flows
-const { principalFlow, getUserFlow, deleteFirstUserFlow} = require('./Flows/principalFlow')
+const { principalFlow, getUserFlow, deleteFirstUserFlow, menuFLow} = require('./Flows/principalFlow')
 
 
 //Main function
 const main = async () => {
     const adapterDB = new MockAdapter()
-    const adapterFlow = createFlow([principalFlow, getUserFlow, deleteFirstUserFlow])
+    const adapterFlow = createFlow([principalFlow, getUserFlow, deleteFirstUserFlow, menuFLow])
     const adapterProvider = createProvider(WebWhatsappProvider)
     createBot({
         flow: adapterFlow,

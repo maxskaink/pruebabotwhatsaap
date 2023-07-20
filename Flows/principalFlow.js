@@ -1,10 +1,9 @@
 const { addKeyword } = require('@bot-whatsapp/bot')
 const { serviciosFlow, ayudaFlow, llamarFlow } = require('./secundaryFlow')
+const { isatty } = require('tty')
 
 const shapesHi = [
     'hola',
-    'Menu',
-    'menu',
     'Hola',
     'HOLA',
     'Holá',
@@ -30,6 +29,11 @@ const shapesHi = [
     'Hooolaaaa',
     'H♥O♥L♥A'
   ]
+const shapesMenu =[    
+    'Menu',
+    'menu',
+]
+
 const adminNumbers =  JSON.parse(process.env.NUMEROS_ADMIN)
 
 const principalFlow = addKeyword( shapesHi , {sensitive:true})
@@ -45,42 +49,65 @@ const principalFlow = addKeyword( shapesHi , {sensitive:true})
             if(ctx.body.includes('Servicios') || ctx.body.includes('1') ) return 
             if(ctx.body.includes('Llamame') || ctx.body.includes('2') ) return 
             if(ctx.body.includes('Ayuda') || ctx.body.includes('3') ) return 
-            return fallBack
+            return fallBack()
         }, 
         [serviciosFlow, ayudaFlow, llamarFlow])
+
+const menuFLow = addKeyword( shapesMenu, {sensitive:true})
+        .addAnswer(['Escribe alguna de las opciones para ayudarte: (Tabien puedes escribir Menu para regresar en casi cualquier momento) '])
+        .addAnswer(['1️⃣ *Servicios* 🎞️🛒🎮🎧', 'Si deseas conocer que servicios podesmos ofrecerte.',
+                    '2️⃣ *Llamame* 📲📞📳','Si deseas que te contactemos de la forma mas pronta posible.',
+                    '3️⃣ *Ayuda* 🧑‍💼🏃‍♂️🛠️','En breves te atenderemos por este medio'],
+            {capture:true},
+            (ctx, {fallBack}) => {
+                if(ctx.body.includes('Servicios') || ctx.body.includes('1') ) return 
+                if(ctx.body.includes('Llamame') || ctx.body.includes('2') ) return 
+                if(ctx.body.includes('Ayuda') || ctx.body.includes('3') ) return 
+                return fallBack()
+            }, 
+            [serviciosFlow, ayudaFlow, llamarFlow])
 
 const getUserFlow =  addKeyword( ['/usuarios', '!usuarios'], { sensitive: false})
                     .addAnswer(' Procesando la solicitud... ', 
                         null,
                         (ctx, {flowDynamic, endFlow}) => {
+                            let isAuth = false
                             const getUsuarios = () => global.myUsers.getUsers().map( 
                                 (user) =>{ 
                                     return { body: `➡️El usuario *${user.nombre}* con numero ${user.contacto} necesita *${user.metodoContacto}*`} 
                                 })
                                 adminNumbers.forEach( number =>{ 
-                                    if( number == ctx.from) flowDynamic(getUsuarios()) 
-                                    else endFlow({ body: '❌No esta autorizado para esta acciond❌'})
+                                    if( number == ctx.from) 
+                                    {
+                                        isAuth = true
+                                        const actualUsers = getUsuarios()
+                                        if (actualUsers.length == 0 ) return endFlow({body: 'No tiene usuarios pendientes por atender 👍✅'})
+                                        flowDynamic(actualUsers)
+                                    } 
                                 } )
+                                if(!isAuth) endFlow({ body: '❌No esta autorizado para esta acciond❌'})
                         })
 
 const deleteFirstUserFlow =  addKeyword( ['/completado'], { sensitive: false})
                         .addAnswer(' Procesando la solicitud... ', 
                             null,
                             (ctx, {flowDynamic, endFlow}) => {
+                                let isAuth = false
                                 const getUsuarios = () => global.myUsers.getUsers().map( 
                                     (user) =>{ 
                                         return { body: `➡️El usuario *${user.nombre}* con numero ${user.contacto} necesita *${user.metodoContacto}*`} 
                                     })
                                 adminNumbers.forEach( number =>{ 
                                     if( number == ctx.from) {
+                                        isAuth = true
                                         global.myUsers.deleteFirstUser()
                                         const actualUsers = getUsuarios()
                                         if (actualUsers.length == 0 ) return endFlow({body: 'No tiene usuarios pendientes por atender 👍✅'})
                                         actualUsers.unshift({body:'Estos son los usuarios restantes: 📲📞'})
                                         flowDynamic(actualUsers)
                                     }
-                                    else endFlow({ body: '❌No esta autorizado para esta accion❌'})
+                                    if(!isAuth) endFlow({ body: '❌No esta autorizado para esta accion❌'})
                                 } )
                             })
 
-module.exports = { principalFlow, getUserFlow, deleteFirstUserFlow}
+module.exports = { principalFlow, getUserFlow, deleteFirstUserFlow, menuFLow}
