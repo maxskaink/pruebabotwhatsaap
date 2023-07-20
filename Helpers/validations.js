@@ -5,6 +5,7 @@ const isLaboralTime = () => {
   
     const horaActual = new Date().getHours();
 
+    console.log(`La hora el servidor actual es: ${horaActual}`)
     if (horaActual >= horaInicioLaboral && horaActual < horaFinLaboral) 
       return false;
      else 
