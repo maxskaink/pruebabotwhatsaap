@@ -52,7 +52,7 @@ const principalFlow = addKeyword( shapesHi , {sensitive:true})
 const getUserFlow =  addKeyword( ['/usuarios', '!usuarios'], { sensitive: false})
                     .addAnswer(' Procesando la solicitud... ', 
                         null,
-                        (ctx, {flowDynamic}) => {
+                        (ctx, {flowDynamic, endFlow}) => {
                             const getUsuarios = () => global.myUsers.getUsers().map( 
                                 (user) =>{ 
                                     return { body: `➡️El usuario *${user.nombre}* con numero ${user.contacto} necesita *${user.metodoContacto}*`} 
